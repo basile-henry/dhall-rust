@@ -267,6 +267,7 @@ fn type_of_builtin<S>(b: Builtin) -> Expr<S, Normalized<'static>> {
             forall (nothing: optional) ->
             optional
         ),
+        IntegerShow => dhall::expr!(Integer -> Text),
         _ => panic!("Unimplemented typecheck case: {:?}", b),
     }
 }

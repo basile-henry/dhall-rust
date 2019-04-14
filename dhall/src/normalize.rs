@@ -204,6 +204,10 @@ where
         //         _ => return rc(App(f, args)),
         //     }
         // }
+        (IntegerShow, [IntegerLit(n), rest..]) => {
+            let plus = if n < &0 { "" } else { "+" };
+            (rc(TextLit((plus.to_owned() + &n.to_string()).into())), rest)
+        }
         _ => return DoneAsIs,
     };
     // Put the remaining arguments back and eval again. In most cases
@@ -525,8 +529,8 @@ mod spec_tests {
     norm!(success_unit_Integer, "unit/Integer");
     norm!(success_unit_IntegerNegative, "unit/IntegerNegative");
     norm!(success_unit_IntegerPositive, "unit/IntegerPositive");
-    // norm!(success_unit_IntegerShow_12, "unit/IntegerShow-12");
-    // norm!(success_unit_IntegerShow12, "unit/IntegerShow12");
+    norm!(success_unit_IntegerShow_12, "unit/IntegerShow-12");
+    norm!(success_unit_IntegerShow12, "unit/IntegerShow12");
     norm!(success_unit_IntegerShow, "unit/IntegerShow");
     // norm!(success_unit_IntegerToDouble_12, "unit/IntegerToDouble-12");
     // norm!(success_unit_IntegerToDouble12, "unit/IntegerToDouble12");
