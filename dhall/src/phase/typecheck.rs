@@ -612,6 +612,21 @@ fn type_last_layer(
 
             Ok(RetTypeOnly(l.get_type()?.into_owned()))
         }
+        BinOp(o @ RecursiveRecordMerge, l, r) => {
+            let l_type = l.get_type()?;
+            let r_type = r.get_type()?;
+
+            match (l_type.to_value(), r_type.to_value()) {
+                (Value::RecordLit(l_kvs), Value::RecordLit(r_kvs)) => {
+                    use crate::phase::normalize::merge_maps;
+                    use crate::api::Type;
+                    let kvs = merge_maps(&l_kvs, &r_kvs, |_, r_t| r_t.clone());
+
+                    Ok(RetTypeOnly(Type::make_record_type(kvs.iter())))
+                }
+                _ => Err(mkerr(BinOpTypeMismatch(*o, l.clone()))),
+            }
+        }
         BinOp(o, l, r) => {
             let t = builtin_to_type(match o {
                 BoolAnd => Bool,
@@ -622,6 +637,7 @@ fn type_last_layer(
                 NaturalTimes => Natural,
                 TextAppend => Text,
                 ListAppend => unreachable!(),
+                RecursiveRecordMerge => unreachable!(),
                 _ => return Err(mkerr(Unimplemented)),
             })?;
 
@@ -1120,14 +1136,14 @@ mod spec_tests {
     ti_success!(ti_success_unit_RecordTypeNestedKind, "unit/RecordTypeNestedKind");
     ti_success!(ti_success_unit_RecordTypeNestedKindLike, "unit/RecordTypeNestedKindLike");
     ti_success!(ti_success_unit_RecordTypeType, "unit/RecordTypeType");
-    // ti_success!(ti_success_unit_RecursiveRecordMergeLhsEmpty, "unit/RecursiveRecordMergeLhsEmpty");
-    // ti_success!(ti_success_unit_RecursiveRecordMergeRecursively, "unit/RecursiveRecordMergeRecursively");
-    // ti_success!(ti_success_unit_RecursiveRecordMergeRecursivelyKinds, "unit/RecursiveRecordMergeRecursivelyKinds");
-    // ti_success!(ti_success_unit_RecursiveRecordMergeRecursivelyTypes, "unit/RecursiveRecordMergeRecursivelyTypes");
-    // ti_success!(ti_success_unit_RecursiveRecordMergeRhsEmpty, "unit/RecursiveRecordMergeRhsEmpty");
-    // ti_success!(ti_success_unit_RecursiveRecordMergeTwo, "unit/RecursiveRecordMergeTwo");
-    // ti_success!(ti_success_unit_RecursiveRecordMergeTwoKinds, "unit/RecursiveRecordMergeTwoKinds");
-    // ti_success!(ti_success_unit_RecursiveRecordMergeTwoTypes, "unit/RecursiveRecordMergeTwoTypes");
+    ti_success!(ti_success_unit_RecursiveRecordMergeLhsEmpty, "unit/RecursiveRecordMergeLhsEmpty");
+    ti_success!(ti_success_unit_RecursiveRecordMergeRecursively, "unit/RecursiveRecordMergeRecursively");
+    ti_success!(ti_success_unit_RecursiveRecordMergeRecursivelyKinds, "unit/RecursiveRecordMergeRecursivelyKinds");
+    ti_success!(ti_success_unit_RecursiveRecordMergeRecursivelyTypes, "unit/RecursiveRecordMergeRecursivelyTypes");
+    ti_success!(ti_success_unit_RecursiveRecordMergeRhsEmpty, "unit/RecursiveRecordMergeRhsEmpty");
+    ti_success!(ti_success_unit_RecursiveRecordMergeTwo, "unit/RecursiveRecordMergeTwo");
+    ti_success!(ti_success_unit_RecursiveRecordMergeTwoKinds, "unit/RecursiveRecordMergeTwoKinds");
+    ti_success!(ti_success_unit_RecursiveRecordMergeTwoTypes, "unit/RecursiveRecordMergeTwoTypes");
     // ti_success!(ti_success_unit_RecursiveRecordTypeMergeRecursively, "unit/RecursiveRecordTypeMergeRecursively");
     // ti_success!(ti_success_unit_RecursiveRecordTypeMergeRecursivelyKinds, "unit/RecursiveRecordTypeMergeRecursivelyKinds");
     // ti_success!(ti_success_unit_RecursiveRecordTypeMergeRecursivelyTypes, "unit/RecursiveRecordTypeMergeRecursivelyTypes");
